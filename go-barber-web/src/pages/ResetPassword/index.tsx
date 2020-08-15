@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable @typescript-eslint/ban-types */
 import React, { useRef, useCallback } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { FiLock } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
@@ -13,6 +13,7 @@ import Button from '../../components/Button/index';
 import logo from '../../assets/logo.svg';
 import getValidationErrors from '../../utils/getValidationErrors';
 import { useToast } from '../../hooks/ToastContext';
+import api from '../../services/api';
 
 interface ResetPasswordFormData {
   password: string;
@@ -22,6 +23,7 @@ interface ResetPasswordFormData {
 const ResetPassword: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const { addToast } = useToast();
+  const location = useLocation();
   const history = useHistory();
 
   const handleSubmit = useCallback(
@@ -38,6 +40,19 @@ const ResetPassword: React.FC = () => {
         });
 
         await schema.validate(data, { abortEarly: false });
+
+        // TODO: Fazer isso de uma forma melhor
+        // Gambiarra de leve para pegar o token no query params, cuidar ao fazer isso, pois se houver mais parâmetros, irá dar erro
+        // Nesse caso só existe o token, por isso foi feito dessa forma
+        const token = location.search.replace('?token=', '');
+
+        const { password, password_confirmation } = data;
+
+        await api.post('password/reset', {
+          password,
+          password_confirmation,
+          token,
+        });
 
         addToast({
           type: 'success',
@@ -59,7 +74,7 @@ const ResetPassword: React.FC = () => {
         });
       }
     },
-    [addToast, history],
+    [addToast, history, location.search],
   );
 
   return (
