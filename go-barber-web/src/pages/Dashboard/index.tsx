@@ -1,9 +1,17 @@
 import React, { useCallback } from 'react';
-import { FiLogOut } from 'react-icons/fi';
+import { FiPower, FiClock } from 'react-icons/fi';
 import { useAuth } from '../../hooks/AuthContext';
 import { useToast } from '../../hooks/ToastContext';
 import logoImg from '../../assets/logo.svg';
-import { Header, HeaderContent, Profile } from './styles';
+import {
+  Header,
+  HeaderContent,
+  Profile,
+  Content,
+  Schedule,
+  NextAppointment,
+  Calendar,
+} from './styles';
 
 const Dashboard: React.FC = () => {
   const { signOut, user } = useAuth();
@@ -39,11 +47,32 @@ const Dashboard: React.FC = () => {
             </div>
           </Profile>
           <button type="button" onClick={handleSignOut}>
-            <FiLogOut />
+            <FiPower />
           </button>
         </HeaderContent>
       </Header>
-      {/* <Content /> */}
+      <Content>
+        <Schedule>
+          <h1>Horários Agendados</h1>
+          <p>
+            <span>Hoje</span>
+            <span>Dia 06</span>
+            <span>Segunda-feira</span>
+          </p>
+          <NextAppointment>
+            <strong>Atendimento a seguir</strong>
+            <div>
+              <img src={user.avatar_url} alt={user.name} />
+              <strong>{user.name}</strong>
+              <span>
+                <FiClock />
+                08:00
+              </span>
+            </div>
+          </NextAppointment>
+        </Schedule>
+        <Calendar />
+      </Content>
     </>
   );
 };
