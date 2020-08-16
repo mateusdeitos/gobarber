@@ -1,6 +1,8 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { FiPower, FiClock } from 'react-icons/fi';
 import DayPicker, { DayModifiers } from 'react-day-picker';
+import { isToday, format } from 'date-fns';
+import ptbr from 'date-fns/locale/pt-BR';
 import { useAuth } from '../../hooks/AuthContext';
 import { useToast } from '../../hooks/ToastContext';
 import logoImg from '../../assets/logo.svg';
@@ -23,6 +25,15 @@ interface MonthAvailabilityItem {
   available: boolean;
 }
 
+interface Appointment {
+  id: string;
+  date: string;
+  user: {
+    name: string;
+    avatar_url: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(() => {
     // Caso o dia atual caia no final de semana, define o primeiro dia como a próxima segunda-feira
@@ -32,6 +43,7 @@ const Dashboard: React.FC = () => {
 
     return today;
   });
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthAvailability, setMonthAvailability] = useState<
     MonthAvailabilityItem[]
@@ -56,10 +68,21 @@ const Dashboard: React.FC = () => {
         },
       })
       .then(response => {
-        console.log(response.data);
         setMonthAvailability(response.data);
       });
   }, [currentMonth, user.id]);
+
+  useEffect(() => {
+    api
+      .get(`/appointments/me`, {
+        params: {
+          year: selectedDate.getFullYear(),
+          month: selectedDate.getMonth() + 1,
+          day: selectedDate.getDate(),
+        },
+      })
+      .then(response => console.log(response.data));
+  }, [selectedDate]);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -88,6 +111,24 @@ const Dashboard: React.FC = () => {
       });
   }, [currentMonth, monthAvailability]);
 
+  const checkIfIsToday = useMemo(() => isToday(selectedDate), [selectedDate]);
+
+  const selectedDateAsText = useMemo(
+    () =>
+      format(selectedDate, "'Dia' dd 'de' MMMM", {
+        locale: ptbr,
+      }),
+    [selectedDate],
+  );
+
+  const selectedWeekDayAsText = useMemo(
+    () =>
+      format(selectedDate.getDay(), 'EEEE', {
+        locale: ptbr,
+      }),
+    [selectedDate],
+  );
+
   return (
     <>
       <Header>
@@ -109,9 +150,9 @@ const Dashboard: React.FC = () => {
         <Schedule>
           <h1>Horários Agendados</h1>
           <p>
-            <span>Hoje</span>
-            <span>Dia 06</span>
-            <span>Segunda-feira</span>
+            {checkIfIsToday && <span>Hoje</span>}
+            <span>{selectedDateAsText}</span>
+            <span>{selectedWeekDayAsText}</span>
           </p>
           <NextAppointment>
             <strong>Atendimento a seguir</strong>
