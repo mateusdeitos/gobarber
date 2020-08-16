@@ -180,6 +180,10 @@ export const Section = styled.section`
     padding-bottom: 16px;
     margin-bottom: 24px;
   }
+
+  > p {
+    color: #999591;
+  }
 `;
 
 export const Appointment = styled.div`
