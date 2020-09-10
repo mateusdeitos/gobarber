@@ -6,20 +6,20 @@ import {
   View,
   ScrollView,
   TextInput,
-  Alert
+  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Form } from '@unform/mobile';
+import { FormHandles } from '@unform/core';
+import Icon from 'react-native-vector-icons/Feather';
+import * as Yup from 'yup';
+import logoImg from '../../assets/logo.png';
 import {
   Container,
   Title,
   BackToSignIn,
-  BackToSignInText
+  BackToSignInText,
 } from './styles';
-import { useNavigation } from '@react-navigation/native';
-import { Form } from '@unform/mobile';
-import { FormHandles } from '@unform/core';
-import logoImg from '../../assets/logo.png';
-import Icon from 'react-native-vector-icons/Feather';
-import * as Yup from 'yup';
 
 import Input from '../../components/input';
 import Button from '../../components/button';
@@ -93,8 +93,9 @@ const SignUp: React.FC = () => {
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flex: 1 }}>
-          <Container >
+          contentContainerStyle={{ flex: 1 }}
+        >
+          <Container>
             <Image source={logoImg} />
             <View>
               <Title>Crie sua conta</Title>
@@ -154,6 +155,6 @@ const SignUp: React.FC = () => {
       </BackToSignIn>
     </>
   );
-}
+};
 
 export default SignUp;
