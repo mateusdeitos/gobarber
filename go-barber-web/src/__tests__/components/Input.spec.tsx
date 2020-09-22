@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, waitFor, wait } from '@testing-library/react';
 import Input from '../../components/Input';
+import 'jest-styled-components';
 
 jest.mock('@unform/core', () => {
   return {
@@ -34,15 +35,15 @@ describe('Input component', () => {
     fireEvent.focus(inputElement);
 
     await waitFor(() => {
-      expect(inputContainer).toHaveStyle('border-color: #ff9000;');
-      expect(inputContainer).toHaveStyle('color: #ff9000;');
+      expect(inputContainer).toHaveStyleRule('border-color: #ff9000;');
+      expect(inputContainer).toHaveStyleRule('color: #ff9000;');
     });
 
     fireEvent.blur(inputElement);
 
     await waitFor(() => {
-      expect(inputContainer).not.toHaveStyle('border-color: #ff9000;');
-      expect(inputContainer).not.toHaveStyle('color: #ff9000;');
+      expect(inputContainer).not.toHaveStyleRule('border-color: #ff9000;');
+      expect(inputContainer).not.toHaveStyleRule('color: #ff9000;');
     });
   });
   it('should keep border highlighted when the input is filled', async () => {
@@ -62,7 +63,7 @@ describe('Input component', () => {
     fireEvent.blur(inputElement);
 
     await waitFor(() => {
-      expect(inputContainer).toHaveStyle('color: #ff9000;');
+      expect(inputContainer).toHaveStyleRule('color: #ff9000;');
     });
   });
 });
