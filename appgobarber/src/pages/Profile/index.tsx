@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import React, { useRef, useCallback } from 'react';
+import ImagePicker from 'react-native-image-picker';
 import {
   Image,
   KeyboardAvoidingView,
@@ -113,8 +114,36 @@ const Profile: React.FC = () => {
         Alert.alert('Ocorreu um erro ao atualizar o perfil');
       }
     },
-    [navigation],
+    [navigation, updateUser],
   );
+
+  const handleUpdateAvatar = useCallback(() => {
+    ImagePicker.showImagePicker({
+      title: 'Selecione um avatar',
+      cancelButtonTitle: 'Cancelar',
+      takePhotoButtonTitle: 'Tirar foto',
+      chooseFromLibraryButtonTitle: 'Escolha da galeria',
+    }, async (response) => {
+      if (response.didCancel) {
+        return;
+      }
+      if (response.error) {
+        Alert.alert('Erro ao atualizar seu avatar');
+        return;
+      }
+
+      const data = new FormData();
+      data.append('avatar', {
+        type: 'image/jpeg',
+        name: `${user.id}.jpeg`,
+        uri: response.uri,
+      });
+
+      const res = await api.patch('/users/avatar', data);
+
+      updateUser(res.data);
+    });
+  }, [updateUser, user.id]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -134,7 +163,7 @@ const Profile: React.FC = () => {
             <BackButton onPress={handleGoBack}>
               <Icon name="chevron-left" size={24} color="#999591" />
             </BackButton>
-            <UserAvatarButton onPress={() => { }}>
+            <UserAvatarButton onPress={handleUpdateAvatar}>
               <UserAvatar source={{ uri: user.avatar_url }} />
             </UserAvatarButton>
             <View>
