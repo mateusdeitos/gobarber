@@ -1,0 +1,120 @@
+import { renderHook } from '@testing-library/react-hooks';
+import MockAdapter from 'axios-mock-adapter';
+import { act } from 'react-test-renderer';
+import { useAuth, AuthProvider } from '../../hooks/AuthContext';
+import api from '../../services/api';
+
+const apiMock = new MockAdapter(api);
+
+describe('Auth hook', () => {
+  it('should be able to sign in', async () => {
+    const apiResponse = {
+      user: {
+        id: 'user123',
+        name: 'John Doe',
+        email: 'johndoe@example.com',
+      },
+      token: 'token123',
+    };
+    apiMock.onPost('sessions').reply(200, apiResponse);
+
+    // Espiar o localStorage
+    // localStorage é um alias no JS, por isso foi utilizada a classe Storage
+    const setItem = jest.spyOn(Storage.prototype, 'setItem');
+
+    const { result, waitForNextUpdate } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    result.current.signIn({
+      email: 'johndoe@example.com',
+      password: '123456',
+    });
+
+    // Necessário para o teste funcionar corretamente, pois precisa aguardar
+    // que o state dentro do hook mude.
+    await waitForNextUpdate();
+
+    expect(setItem).toHaveBeenCalledWith('@GoBarber:token', apiResponse.token);
+    expect(setItem).toHaveBeenCalledWith(
+      '@GoBarber:user',
+      JSON.stringify(apiResponse.user),
+    );
+    expect(result.current.user.email).toEqual('johndoe@example.com');
+  });
+
+  it('should restore saved data from storage when auth initiates', () => {
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(key => {
+      switch (key) {
+        case '@GoBarber:token':
+          return 'token-123';
+        case '@GoBarber:user':
+          return JSON.stringify({
+            id: 'user123',
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+          });
+        default:
+          return null;
+      }
+    });
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    expect(result.current.user.email).toBe('johndoe@example.com');
+  });
+  it('should be able to sign out', async () => {
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(key => {
+      switch (key) {
+        case '@GoBarber:token':
+          return 'token-123';
+        case '@GoBarber:user':
+          return JSON.stringify({
+            id: 'user123',
+            name: 'John Doe',
+            email: 'johndoe@example.com',
+          });
+        default:
+          return null;
+      }
+    });
+    const removeItemSpy = jest.spyOn(Storage.prototype, 'removeItem');
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    // Quando a função que altera o estado for síncrona, utilizar o act
+    act(() => {
+      result.current.signOut();
+    });
+
+    expect(result.current.user).toBeUndefined();
+    expect(removeItemSpy).toHaveBeenCalledTimes(2);
+  });
+  it('should be able to update user data', () => {
+    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    const user = {
+      id: 'user-123',
+      name: 'John Doe',
+      email: 'jonhdoe@example.com',
+      avatar_url: 'avatar.jpg',
+    };
+
+    act(() => {
+      result.current.updateUser(user);
+    });
+
+    expect(setItemSpy).toHaveBeenCalledWith(
+      '@GoBarber:user',
+      JSON.stringify(user),
+    );
+  });
+});
